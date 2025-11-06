@@ -1,0 +1,5 @@
+{
+  "name": "Financial AI Agent",
+  "description": "An AI-powered chatbot that provides personalized financial solutions based on the user's personality and financial literacy. It includes features like asset and transaction lookups, stock inquiries, and tailored investment advice to assist beginners and experienced users alike.",
+  "requestFramePermissions": []
+}
