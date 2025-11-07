@@ -48,7 +48,7 @@ const HistoryChart: React.FC<{ data: ForexHistoryPoint[], pair: string }> = ({ d
                         labelStyle={{ color: '#f9fafb' }}
                     />
                     <Legend />
-                    <Line type="monotone" dataKey="rate" stroke="#4f46e5" strokeWidth={2} activeDot={{ r: 8 }} dot={{ r: 4 }} name="환율" />
+                    <Line type="monotone" dataKey="rate" stroke="#FFB400" strokeWidth={2} activeDot={{ r: 8 }} dot={{ r: 4 }} name="환율" />
                 </LineChart>
             </ResponsiveContainer>
         </div>
