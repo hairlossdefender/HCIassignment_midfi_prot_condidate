@@ -4,10 +4,26 @@ import { SurveyScores, Asset, FinancialTip } from '../types';
 
 let ai: GoogleGenAI | null = null;
 
-if (process.env.API_KEY) {
-    ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Vite에서는 import.meta.env를 사용해야 함
+// vite.config.ts에서 정의한 process.env.API_KEY도 확인
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY || 
+               (typeof process !== 'undefined' && (process as any).env?.API_KEY) ||
+               (typeof process !== 'undefined' && (process as any).env?.GEMINI_API_KEY);
+
+if (apiKey) {
+    try {
+        ai = new GoogleGenAI({ apiKey: apiKey as string });
+        console.log("✅ Gemini API initialized successfully");
+    } catch (error) {
+        console.error("❌ Error initializing Gemini API:", error);
+        ai = null;
+    }
 } else {
-    console.error("API_KEY environment variable not set.");
+    console.error("❌ GEMINI_API_KEY environment variable not set.");
+    console.error("📝 Please create a .env.local file in the project root with:");
+    console.error("   VITE_GEMINI_API_KEY=your_api_key_here");
+    console.error("   OR");
+    console.error("   GEMINI_API_KEY=your_api_key_here");
 }
 
 
@@ -67,6 +83,33 @@ const functions: Record<string, FunctionDeclaration> = {
             },
             required: ["symbol"]
         }
+    },
+    getVirtualPortfolio: {
+        name: "getVirtualPortfolio",
+        description: "사용자의 가상 거래소 포트폴리오를 조회합니다. (Get the user's virtual trading portfolio.)",
+        parameters: { type: Type.OBJECT, properties: {} }
+    },
+    getInvestmentDiary: {
+        name: "getInvestmentDiary",
+        description: "사용자의 투자 일기를 조회합니다. (Get the user's investment diary entries.)",
+        parameters: {
+            type: Type.OBJECT,
+            properties: {
+                stockSymbol: { type: Type.STRING, description: "종목 코드로 필터링 (선택사항, Optional filter by stock symbol)" },
+            },
+            required: []
+        }
+    },
+    getNews: {
+        name: "getNews",
+        description: "최신 금융 뉴스를 조회합니다. (Get the latest financial news.)",
+        parameters: {
+            type: Type.OBJECT,
+            properties: {
+                category: { type: Type.STRING, description: "뉴스 카테고리 (market, company, economy, policy) - 선택사항" },
+            },
+            required: []
+        }
     }
 };
 
@@ -111,7 +154,18 @@ export const generateDashboardBriefing = async (assets: Asset[], userName: strin
 };
 
 export const getFinancialTip = async (comprehensionScore: number): Promise<FinancialTip> => {
-    if (!ai) return { title: "오류", content: "AI 서비스를 사용할 수 없습니다."};
+    if (!ai) {
+        // API가 없을 때 기본 팁 제공
+        const defaultTips: FinancialTip[] = [
+            { title: "복리 효과의 힘", content: "작은 금액이라도 꾸준히 저축하면 복리 효과로 시간이 지날수록 자산이 크게 늘어납니다. 매월 일정 금액을 저축하는 습관을 만들어보세요." },
+            { title: "긴급자금 마련의 중요성", content: "예상치 못한 상황에 대비해 생활비의 3-6개월분을 긴급자금으로 준비하는 것이 좋습니다. 이 자금은 안전한 예금 상품에 보관하세요." },
+            { title: "분산투자의 원칙", content: "모든 자산을 한 곳에 투자하지 말고 여러 자산에 분산 투자하면 리스크를 줄일 수 있습니다. 주식, 채권, 부동산 등 다양한 자산에 투자해보세요." },
+            { title: "장기 투자의 가치", content: "단기적인 시장 변동에 흔들리지 말고 장기적인 관점에서 투자하세요. 시간이 지날수록 시장 변동성이 완화되고 수익 가능성이 높아집니다." },
+            { title: "수수료 관리하기", content: "투자 수수료와 관리비는 장기적으로 수익률에 큰 영향을 미칩니다. 수수료가 낮은 상품을 선택하고 정기적으로 비용을 점검하세요." }
+        ];
+        const level = comprehensionScore > 6 ? 3 : comprehensionScore > 4 ? 2 : 0;
+        return defaultTips[level] || defaultTips[0];
+    }
     
     let level = "초급자를 위한";
     if (comprehensionScore > 6) {
@@ -140,10 +194,23 @@ export const getFinancialTip = async (comprehensionScore: number): Promise<Finan
             }
         });
         
-        return JSON.parse(response.text) as FinancialTip;
+        const parsed = JSON.parse(response.text) as FinancialTip;
+        // 응답이 올바른 형식인지 확인
+        if (parsed.title && parsed.content) {
+            return parsed;
+        } else {
+            throw new Error("Invalid response format");
+        }
     } catch (error) {
         console.error("Error generating financial tip:", error);
-        return { title: "금융 팁", content: "새로운 금융 팁을 가져오는 데 실패했습니다. 잠시 후 다시 시도해주세요."};
+        // 에러 발생 시 기본 팁 제공
+        const defaultTips: FinancialTip[] = [
+            { title: "복리 효과의 힘", content: "작은 금액이라도 꾸준히 저축하면 복리 효과로 시간이 지날수록 자산이 크게 늘어납니다. 매월 일정 금액을 저축하는 습관을 만들어보세요." },
+            { title: "긴급자금 마련의 중요성", content: "예상치 못한 상황에 대비해 생활비의 3-6개월분을 긴급자금으로 준비하는 것이 좋습니다. 이 자금은 안전한 예금 상품에 보관하세요." },
+            { title: "분산투자의 원칙", content: "모든 자산을 한 곳에 투자하지 말고 여러 자산에 분산 투자하면 리스크를 줄일 수 있습니다. 주식, 채권, 부동산 등 다양한 자산에 투자해보세요." }
+        ];
+        const level = comprehensionScore > 6 ? 2 : comprehensionScore > 4 ? 1 : 0;
+        return defaultTips[level] || defaultTips[0];
     }
 };
 

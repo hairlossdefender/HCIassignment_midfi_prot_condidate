@@ -19,9 +19,9 @@
             },
             colors: {
               'brand-primary': {
-                light: '#4f46e5',
-                DEFAULT: '#4338ca',
-                dark: '#3730a3',
+                light: '#FFB400',
+                DEFAULT: '#FFB400',
+                dark: '#E6A200',
               },
               'brand-secondary': {
                 light: '#10b981',
@@ -60,6 +60,66 @@
       }
       .animate-fadeIn {
         animation: fadeIn 0.3s ease-out forwards;
+      }
+      
+      /* 다크모드 텍스트 자동 변환 */
+      .dark {
+        color: #f9fafb;
+      }
+      
+      .dark * {
+        color: inherit;
+      }
+      
+      /* 명시적으로 색상이 지정되지 않은 텍스트는 다크모드에서 흰색 */
+      .dark p:not([class*="text-"]):not(.recharts-tooltip-custom):not(.recharts-tooltip-custom *),
+      .dark span:not([class*="text-"]):not(.recharts-tooltip-custom):not(.recharts-tooltip-custom *),
+      .dark div:not([class*="text-"]):not(.recharts-tooltip-custom):not(.recharts-tooltip-custom *),
+      .dark h1:not([class*="text-"]):not(.recharts-tooltip-custom):not(.recharts-tooltip-custom *),
+      .dark h2:not([class*="text-"]):not(.recharts-tooltip-custom):not(.recharts-tooltip-custom *),
+      .dark h3:not([class*="text-"]):not(.recharts-tooltip-custom):not(.recharts-tooltip-custom *),
+      .dark h4:not([class*="text-"]):not(.recharts-tooltip-custom):not(.recharts-tooltip-custom *),
+      .dark h5:not([class*="text-"]):not(.recharts-tooltip-custom):not(.recharts-tooltip-custom *),
+      .dark h6:not([class*="text-"]):not(.recharts-tooltip-custom):not(.recharts-tooltip-custom *),
+      .dark label:not([class*="text-"]):not(.recharts-tooltip-custom):not(.recharts-tooltip-custom *),
+      .dark button:not([class*="text-"]):not(.recharts-tooltip-custom):not(.recharts-tooltip-custom *),
+      .dark input:not([class*="text-"]):not(.recharts-tooltip-custom):not(.recharts-tooltip-custom *),
+      .dark textarea:not([class*="text-"]):not(.recharts-tooltip-custom):not(.recharts-tooltip-custom *),
+      .dark select:not([class*="text-"]):not(.recharts-tooltip-custom):not(.recharts-tooltip-custom *) {
+        color: #f9fafb !important;
+      }
+      
+      /* text-black, text-gray-900 등 검은색 텍스트를 다크모드에서 흰색으로 */
+      .dark .text-black,
+      .dark .text-gray-900,
+      .dark .text-gray-800,
+      .dark .text-gray-700 {
+        color: #f9fafb !important;
+      }
+      
+      /* Recharts Tooltip 예외 처리 - 항상 흰 배경에 검은 글씨 (최우선 적용) */
+      .recharts-tooltip-custom,
+      .recharts-tooltip-custom *,
+      .recharts-tooltip-text,
+      .dark .recharts-tooltip-custom,
+      .dark .recharts-tooltip-custom *,
+      .dark .recharts-tooltip-text,
+      .dark .recharts-tooltip-text * {
+        color: #111827 !important;
+      }
+      
+      .recharts-tooltip-custom,
+      .dark .recharts-tooltip-custom {
+        background-color: #ffffff !important;
+        border: 1px solid #e5e7eb !important;
+      }
+      
+      .dark .recharts-tooltip-wrapper,
+      .dark .recharts-tooltip-wrapper *,
+      .dark .recharts-default-tooltip,
+      .dark .recharts-default-tooltip * {
+        color: #111827 !important;
+        background-color: #ffffff !important;
       }
     </style>
   <script type="importmap">
